@@ -5,7 +5,7 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const MessageSchema = z.object({
-  role: z.enum(["user", "assistant", "system"]),
+  role: z.enum(["user", "assistant"]),
   content: z.string().min(1),
 });
 
@@ -29,7 +29,8 @@ export const chatWithJai = createServerFn({ method: "POST" })
     const gateway = createLovableAiGatewayProvider(key);
     const result = await generateText({
       model: gateway("google/gemini-3-flash-preview"),
-      messages: [{ role: "system", content: SYSTEM }, ...data.messages],
+      system: SYSTEM,
+      messages: data.messages,
     });
     return { text: result.text };
   });
