@@ -33,15 +33,28 @@ function Auth() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email, password,
           options: { data: { name }, emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email to confirm.");
+        if (data.session) {
+          toast.success("Welcome to JAI.AI!");
+          navigate({ to: "/dashboard" });
+        } else {
+          // Fallback if a confirmation email is still required
+          const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInErr) {
+            toast.success("Account created. Check your email to confirm, then sign in.");
+            setMode("login");
+          } else {
+            navigate({ to: "/dashboard" });
+          }
+        }
       } else if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        toast.success("Signed in");
         navigate({ to: "/dashboard" });
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -55,6 +68,7 @@ function Auth() {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally { setLoading(false); }
   };
+
 
   const handleGoogle = async () => {
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
