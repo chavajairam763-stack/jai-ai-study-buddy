@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function Layout() {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col lg:flex-row">
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="glass sticky top-0 z-30 hidden items-center gap-3 border-b px-6 py-3 lg:flex">
@@ -29,7 +29,7 @@ function Layout() {
             <div className="h-9 w-9 rounded-full bg-gradient-primary glow-sm" />
           </div>
         </header>
-        <main className="min-w-0 flex-1 p-4 md:p-6">
+        <main className="min-w-0 flex-1 p-3 sm:p-4 md:p-6">
           <Outlet />
         </main>
       </div>
