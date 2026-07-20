@@ -61,10 +61,10 @@ function Chat() {
   };
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-4xl flex-col">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-4xl flex-col lg:h-[calc(100vh-8rem)]">
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto pb-4">
         {messages.length === 0 && (
-          <div className="glass mx-auto mt-10 max-w-lg rounded-2xl p-8 text-center">
+          <div className="glass mx-auto mt-6 max-w-lg rounded-2xl p-6 text-center sm:mt-10 sm:p-8">
             <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-primary glow-sm"><Sparkles className="h-7 w-7 text-primary-foreground" /></div>
             <h2 className="text-xl font-bold">Ask JAI anything</h2>
             <p className="mt-1 text-sm text-muted-foreground">Doubts, code, essays, translations — in English or Telugu.</p>
@@ -77,12 +77,12 @@ function Chat() {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] ${m.role === "user" ? "" : "w-full"}`}>
+            <div className={`min-w-0 max-w-[90%] sm:max-w-[85%] ${m.role === "user" ? "" : "w-full"}`}>
               {m.role === "user" ? (
-                <div className="rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm text-primary-foreground">{m.content}</div>
+                <div className="whitespace-pre-wrap break-words rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm text-primary-foreground [overflow-wrap:anywhere]">{m.content}</div>
               ) : (
                 <div className="space-y-2">
-                  <div className="prose prose-sm prose-invert max-w-none text-foreground">
+                  <div className="prose prose-sm prose-invert max-w-none break-words text-foreground [overflow-wrap:anywhere]">
                     <ReactMarkdown>{m.content}</ReactMarkdown>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">

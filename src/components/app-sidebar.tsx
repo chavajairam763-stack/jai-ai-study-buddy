@@ -67,15 +67,15 @@ export function AppSidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="glass sticky top-0 z-40 flex items-center justify-between border-b px-4 py-3 lg:hidden">
+      <div className="glass sticky top-0 z-40 flex w-full items-center justify-between border-b px-4 py-3 lg:hidden">
         <Logo />
         <button onClick={() => setOpen(!open)} className="rounded-lg p-2 hover:bg-white/5" aria-label="Menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setOpen(false)}>
-          <div className="glass-strong absolute left-0 top-0 h-full w-72" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)}>
+          <div className="glass-strong absolute left-0 top-0 h-full w-72 max-w-[85vw] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             {nav}
           </div>
         </div>
