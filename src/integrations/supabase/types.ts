@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          branch: string | null
+          college: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          semester: string | null
+          study_hours: number
+          study_streak: number
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          branch?: string | null
+          college?: string | null
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+          semester?: string | null
+          study_hours?: number
+          study_streak?: number
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          branch?: string | null
+          college?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          semester?: string | null
+          study_hours?: number
+          study_streak?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
