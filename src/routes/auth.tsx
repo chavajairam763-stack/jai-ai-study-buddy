@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Logo } from "@/components/logo";
 import { Mail, Lock, Phone, ArrowRight } from "lucide-react";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/auth")({
   component: Auth,
