@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Logo } from "@/components/logo";
 import { Mail, Lock, Phone, ArrowRight } from "lucide-react";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/auth")({
   component: Auth,
@@ -65,14 +66,14 @@ function Auth() {
         setMode("login");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(friendlyAuthError(err));
     } finally { setLoading(false); }
   };
 
 
   const handleGoogle = async () => {
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (res.error) toast.error(res.error.message ?? "Google sign-in failed");
+    if (res.error) toast.error(friendlyAuthError(res.error));
     else if (!res.redirected) navigate({ to: "/dashboard" });
   };
 
@@ -91,7 +92,7 @@ function Auth() {
         navigate({ to: "/dashboard" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OTP error");
+      toast.error(friendlyAuthError(err));
     } finally { setLoading(false); }
   };
 
