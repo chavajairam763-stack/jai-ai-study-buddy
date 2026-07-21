@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { registerPwa } from "../lib/register-sw";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,7 +59,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" },
+      { name: "theme-color", content: "#0b0b16" },
+      { name: "color-scheme", content: "dark" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "JAI.AI" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "application-name", content: "JAI.AI" },
+      { name: "format-detection", content: "telephone=no" },
       { title: "JAI.AI — Study Smarter, Not Harder" },
       { name: "description", content: "Your personal AI study partner. Chat, analyze PDFs, generate notes, master exams." },
       { property: "og:title", content: "JAI.AI — Study Smarter, Not Harder" },
@@ -72,6 +81,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap" },
@@ -103,7 +116,11 @@ function RootComponent() {
         if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
       }
     });
-    return () => sub.subscription.unsubscribe();
+    registerPwa();
+    // Android hardware back button: if we can go back within SPA, do it; else let default.
+    const onPop = () => { /* router handles history; hook reserved for future modals */ };
+    window.addEventListener("popstate", onPop);
+    return () => { sub.subscription.unsubscribe(); window.removeEventListener("popstate", onPop); };
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
