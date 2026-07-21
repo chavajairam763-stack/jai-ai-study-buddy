@@ -66,14 +66,14 @@ function Auth() {
         setMode("login");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(friendlyAuthError(err));
     } finally { setLoading(false); }
   };
 
 
   const handleGoogle = async () => {
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (res.error) toast.error(res.error.message ?? "Google sign-in failed");
+    if (res.error) toast.error(friendlyAuthError(res.error));
     else if (!res.redirected) navigate({ to: "/dashboard" });
   };
 
@@ -92,7 +92,7 @@ function Auth() {
         navigate({ to: "/dashboard" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OTP error");
+      toast.error(friendlyAuthError(err));
     } finally { setLoading(false); }
   };
 
