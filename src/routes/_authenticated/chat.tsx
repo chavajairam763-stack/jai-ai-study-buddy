@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
-import { chatWithJai } from "@/lib/ai.functions";
-import { useServerFn } from "@tanstack/react-start";
-import { Send, Copy, RefreshCw, ThumbsUp, ThumbsDown, Share2, Mic, Sparkles, Trash2 } from "lucide-react";
+import { Send, Copy, RefreshCw, ThumbsUp, ThumbsDown, Share2, Mic, Sparkles, Trash2, Square } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/chat")({ component: Chat });
@@ -17,17 +15,26 @@ const SUGGESTIONS = [
   "Solve: ∫ x² eˣ dx",
 ];
 
+const STORAGE_KEY = "jai.chat.messages.v1";
+
 function Chat() {
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<Msg[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const send = useServerFn(chatWithJai);
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-40))); } catch { /* quota */ }
+  }, [messages]);
 
   useEffect(() => {
     const el = taRef.current;
@@ -36,36 +43,67 @@ function Chat() {
     el.style.height = Math.min(el.scrollHeight, 160) + "px";
   }, [input]);
 
-  const runWith = async (history: Msg[]) => {
+  const streamFrom = useCallback(async (history: Msg[]) => {
     setLoading(true);
+    setMessages([...history, { role: "assistant", content: "" }]);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     try {
-      const res = await send({ data: { messages: history.map(({ role, content }) => ({ role, content })) } });
-      setMessages([...history, { role: "assistant", content: res.text }]);
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ messages: history.map(({ role, content }) => ({ role, content })) }),
+        signal: ctrl.signal,
+      });
+      if (!res.ok || !res.body) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((ms) => {
+          const copy = ms.slice();
+          copy[copy.length - 1] = { role: "assistant", content: acc };
+          return copy;
+        });
+      }
     } catch (err) {
+      if ((err as Error).name === "AbortError") return;
       const msg = err instanceof Error ? err.message : "Chat failed";
       toast.error(msg.includes("402") ? "AI credits exhausted. Please add credits to continue." : msg.includes("429") ? "Rate limited — try again in a moment." : msg);
+      setMessages((ms) => ms.slice(0, -1));
     } finally {
       setLoading(false);
+      abortRef.current = null;
     }
-  };
+  }, []);
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const text = input.trim();
     if (!text || loading) return;
     const next: Msg[] = [...messages, { role: "user", content: text }];
-    setMessages(next);
     setInput("");
-    await runWith(next);
+    await streamFrom(next);
   };
 
   const regen = async () => {
-    const lastAssistant = [...messages].map((m, i) => ({ ...m, i })).reverse().find((m) => m.role === "assistant");
-    if (!lastAssistant) return;
-    const trimmed = messages.slice(0, lastAssistant.i);
-    setMessages(trimmed);
-    await runWith(trimmed);
+    if (loading) return;
+    let cut = messages.length;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant") { cut = i; break; }
+    }
+    const trimmed = messages.slice(0, cut);
+    if (!trimmed.length) return;
+    await streamFrom(trimmed);
   };
+
+  const stop = () => abortRef.current?.abort();
 
   const startVoice = () => {
     const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -89,15 +127,17 @@ function Chat() {
     setMessages((ms) => ms.map((m, i) => (i === idx ? { ...m, liked: m.liked === val ? null : val } : m)));
   };
 
+  const clearAll = () => { setMessages([]); try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } };
+
   return (
     <div className="mx-auto flex h-[calc(100dvh-8rem)] w-full max-w-4xl flex-col lg:h-[calc(100vh-8rem)]">
       <div className="mb-2 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold sm:text-xl">AI Chat</h1>
-          <p className="text-xs text-muted-foreground">English & Telugu · Math · Code</p>
+          <p className="text-xs text-muted-foreground">English & Telugu · Math · Code · Streaming</p>
         </div>
         {messages.length > 0 && (
-          <button onClick={() => setMessages([])} className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs hover:bg-white/10" aria-label="Clear chat">
+          <button onClick={clearAll} className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs hover:bg-white/10" aria-label="Clear chat">
             <Trash2 className="h-3.5 w-3.5" /> New chat
           </button>
         )}
@@ -121,34 +161,39 @@ function Chat() {
             </div>
           </div>
         )}
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            <div className={`min-w-0 max-w-[92%] sm:max-w-[85%] ${m.role === "user" ? "" : "w-full"}`}>
-              {m.role === "user" ? (
-                <div className="whitespace-pre-wrap break-words rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm text-primary-foreground shadow-lg [overflow-wrap:anywhere]">{m.content}</div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="glass rounded-2xl px-4 py-3"><Markdown content={m.content} /></div>
-                  <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
-                    <IconBtn label="Copy" onClick={() => { navigator.clipboard.writeText(m.content); toast.success("Copied"); }}><Copy className="h-3.5 w-3.5" /></IconBtn>
-                    <IconBtn label="Regenerate" onClick={regen}><RefreshCw className="h-3.5 w-3.5" /></IconBtn>
-                    <IconBtn label="Share" onClick={() => share(m.content)}><Share2 className="h-3.5 w-3.5" /></IconBtn>
-                    <IconBtn label="Like" onClick={() => react(i, true)} active={m.liked === true}><ThumbsUp className="h-3.5 w-3.5" /></IconBtn>
-                    <IconBtn label="Dislike" onClick={() => react(i, false)} active={m.liked === false}><ThumbsDown className="h-3.5 w-3.5" /></IconBtn>
+        {messages.map((m, i) => {
+          const isLastAssistant = i === messages.length - 1 && m.role === "assistant";
+          const streaming = loading && isLastAssistant;
+          return (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+              <div className={`min-w-0 max-w-[92%] sm:max-w-[85%] ${m.role === "user" ? "" : "w-full"}`}>
+                {m.role === "user" ? (
+                  <div className="whitespace-pre-wrap break-words rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm text-primary-foreground shadow-lg [overflow-wrap:anywhere]">{m.content}</div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="glass rounded-2xl px-4 py-3">
+                      {m.content ? <Markdown content={m.content} /> : (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Sparkles className="h-4 w-4 animate-pulse text-primary" />
+                          JAI is thinking<span className="ml-1 inline-flex text-primary"><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
+                        </div>
+                      )}
+                    </div>
+                    {!streaming && m.content && (
+                      <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
+                        <IconBtn label="Copy" onClick={() => { navigator.clipboard.writeText(m.content); toast.success("Copied"); }}><Copy className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label="Regenerate" onClick={regen}><RefreshCw className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label="Share" onClick={() => share(m.content)}><Share2 className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label="Like" onClick={() => react(i, true)} active={m.liked === true}><ThumbsUp className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label="Dislike" onClick={() => react(i, false)} active={m.liked === false}><ThumbsDown className="h-3.5 w-3.5" /></IconBtn>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="glass flex items-center gap-2 rounded-2xl px-4 py-3 text-sm text-muted-foreground">
-              <Sparkles className="h-4 w-4 animate-pulse text-primary" />
-              JAI is thinking<span className="ml-1 inline-flex text-primary"><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
       <form onSubmit={submit} className="glass-strong sticky bottom-0 flex items-end gap-2 rounded-2xl border p-2">
         <textarea
@@ -162,7 +207,11 @@ function Chat() {
           className="max-h-40 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
         />
         <button type="button" onClick={startVoice} className="rounded-lg p-2 text-muted-foreground hover:bg-white/10" aria-label="Voice input"><Mic className="h-4 w-4" /></button>
-        <button disabled={loading || !input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send message"><Send className="h-4 w-4" /></button>
+        {loading ? (
+          <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
+        ) : (
+          <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send message"><Send className="h-4 w-4" /></button>
+        )}
       </form>
     </div>
   );

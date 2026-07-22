@@ -6,9 +6,10 @@ import { Search, Bell, Settings2 } from "lucide-react";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
+    // Fast path: getSession reads local storage (no network); getUser is a network call.
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw redirect({ to: "/auth" });
+    return { user: data.session.user };
   },
   component: Layout,
 });
