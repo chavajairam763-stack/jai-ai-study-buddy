@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { streamText, type CoreMessage } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM = `You are JAI, a premium AI study partner for students in India (English + Telugu).
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/chat")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { messages } = (await request.json()) as { messages?: CoreMessage[] };
+          const { messages } = (await request.json()) as { messages?: ModelMessage[] };
           if (!Array.isArray(messages) || messages.length === 0) {
             return new Response("Messages required", { status: 400 });
           }
