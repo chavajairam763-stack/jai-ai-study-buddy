@@ -14,10 +14,16 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedResearchRouteImport } from './routes/_authenticated/research'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
+import { Route as AuthenticatedDeveloperRouteImport } from './routes/_authenticated/developer'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedCalculatorRouteImport } from './routes/_authenticated/calculator'
+import { Route as AuthenticatedAutomationRouteImport } from './routes/_authenticated/automation'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -43,14 +49,34 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedResearchRoute = AuthenticatedResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
+  id: '/market',
+  path: '/market',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDeveloperRoute = AuthenticatedDeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -63,25 +89,47 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCalculatorRoute = AuthenticatedCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAutomationRoute = AuthenticatedAutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/calculator': typeof AuthenticatedCalculatorRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/developer': typeof AuthenticatedDeveloperRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/research': typeof AuthenticatedResearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/calculator': typeof AuthenticatedCalculatorRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/developer': typeof AuthenticatedDeveloperRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/research': typeof AuthenticatedResearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
@@ -90,10 +138,16 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/automation': typeof AuthenticatedAutomationRoute
+  '/_authenticated/calculator': typeof AuthenticatedCalculatorRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/developer': typeof AuthenticatedDeveloperRoute
+  '/_authenticated/market': typeof AuthenticatedMarketRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/research': typeof AuthenticatedResearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
@@ -102,20 +156,32 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/automation'
+    | '/calculator'
     | '/chat'
     | '/dashboard'
+    | '/developer'
+    | '/market'
     | '/profile'
+    | '/research'
     | '/settings'
+    | '/workspace'
     | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/automation'
+    | '/calculator'
     | '/chat'
     | '/dashboard'
+    | '/developer'
+    | '/market'
     | '/profile'
+    | '/research'
     | '/settings'
+    | '/workspace'
     | '/api/chat'
   id:
     | '__root__'
@@ -123,10 +189,16 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/automation'
+    | '/_authenticated/calculator'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
+    | '/_authenticated/developer'
+    | '/_authenticated/market'
     | '/_authenticated/profile'
+    | '/_authenticated/research'
     | '/_authenticated/settings'
+    | '/_authenticated/workspace'
     | '/api/chat'
   fileRoutesById: FileRoutesById
 }
@@ -175,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -182,11 +261,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/research': {
+      id: '/_authenticated/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof AuthenticatedResearchRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/market': {
+      id: '/_authenticated/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof AuthenticatedMarketRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/developer': {
+      id: '/_authenticated/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof AuthenticatedDeveloperRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -203,21 +303,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/calculator': {
+      id: '/_authenticated/calculator'
+      path: '/calculator'
+      fullPath: '/calculator'
+      preLoaderRoute: typeof AuthenticatedCalculatorRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/automation': {
+      id: '/_authenticated/automation'
+      path: '/automation'
+      fullPath: '/automation'
+      preLoaderRoute: typeof AuthenticatedAutomationRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAutomationRoute: typeof AuthenticatedAutomationRoute
+  AuthenticatedCalculatorRoute: typeof AuthenticatedCalculatorRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDeveloperRoute: typeof AuthenticatedDeveloperRoute
+  AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedResearchRoute: typeof AuthenticatedResearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAutomationRoute: AuthenticatedAutomationRoute,
+  AuthenticatedCalculatorRoute: AuthenticatedCalculatorRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDeveloperRoute: AuthenticatedDeveloperRoute,
+  AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedResearchRoute: AuthenticatedResearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
