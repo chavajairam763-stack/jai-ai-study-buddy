@@ -16,16 +16,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedPlannerRouteImport } from './routes/_authenticated/planner'
-import { Route as AuthenticatedPdfRouteImport } from './routes/_authenticated/pdf'
-import { Route as AuthenticatedPapersRouteImport } from './routes/_authenticated/papers'
-import { Route as AuthenticatedNotesRouteImport } from './routes/_authenticated/notes'
-import { Route as AuthenticatedFlashcardsRouteImport } from './routes/_authenticated/flashcards'
-import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
-import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
-import { Route as AuthenticatedAssignmentsRouteImport } from './routes/_authenticated/assignments'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -61,36 +53,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPlannerRoute = AuthenticatedPlannerRouteImport.update({
-  id: '/planner',
-  path: '/planner',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPdfRoute = AuthenticatedPdfRouteImport.update({
-  id: '/pdf',
-  path: '/pdf',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPapersRoute = AuthenticatedPapersRouteImport.update({
-  id: '/papers',
-  path: '/papers',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedNotesRoute = AuthenticatedNotesRouteImport.update({
-  id: '/notes',
-  path: '/notes',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedFlashcardsRoute = AuthenticatedFlashcardsRouteImport.update({
-  id: '/flashcards',
-  path: '/flashcards',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
-  id: '/exam',
-  path: '/exam',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -101,32 +63,13 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedBookmarksRoute = AuthenticatedBookmarksRouteImport.update({
-  id: '/bookmarks',
-  path: '/bookmarks',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAssignmentsRoute =
-  AuthenticatedAssignmentsRouteImport.update({
-    id: '/assignments',
-    path: '/assignments',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
-  '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam': typeof AuthenticatedExamRoute
-  '/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/notes': typeof AuthenticatedNotesRoute
-  '/papers': typeof AuthenticatedPapersRoute
-  '/pdf': typeof AuthenticatedPdfRoute
-  '/planner': typeof AuthenticatedPlannerRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -135,16 +78,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
-  '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam': typeof AuthenticatedExamRoute
-  '/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/notes': typeof AuthenticatedNotesRoute
-  '/papers': typeof AuthenticatedPapersRoute
-  '/pdf': typeof AuthenticatedPdfRoute
-  '/planner': typeof AuthenticatedPlannerRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -155,16 +90,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/assignments': typeof AuthenticatedAssignmentsRoute
-  '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/exam': typeof AuthenticatedExamRoute
-  '/_authenticated/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/_authenticated/notes': typeof AuthenticatedNotesRoute
-  '/_authenticated/papers': typeof AuthenticatedPapersRoute
-  '/_authenticated/pdf': typeof AuthenticatedPdfRoute
-  '/_authenticated/planner': typeof AuthenticatedPlannerRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
@@ -175,16 +102,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/assignments'
-    | '/bookmarks'
     | '/chat'
     | '/dashboard'
-    | '/exam'
-    | '/flashcards'
-    | '/notes'
-    | '/papers'
-    | '/pdf'
-    | '/planner'
     | '/profile'
     | '/settings'
     | '/api/chat'
@@ -193,16 +112,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/assignments'
-    | '/bookmarks'
     | '/chat'
     | '/dashboard'
-    | '/exam'
-    | '/flashcards'
-    | '/notes'
-    | '/papers'
-    | '/pdf'
-    | '/planner'
     | '/profile'
     | '/settings'
     | '/api/chat'
@@ -212,16 +123,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
-    | '/_authenticated/assignments'
-    | '/_authenticated/bookmarks'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
-    | '/_authenticated/exam'
-    | '/_authenticated/flashcards'
-    | '/_authenticated/notes'
-    | '/_authenticated/papers'
-    | '/_authenticated/pdf'
-    | '/_authenticated/planner'
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/api/chat'
@@ -286,48 +189,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/planner': {
-      id: '/_authenticated/planner'
-      path: '/planner'
-      fullPath: '/planner'
-      preLoaderRoute: typeof AuthenticatedPlannerRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/pdf': {
-      id: '/_authenticated/pdf'
-      path: '/pdf'
-      fullPath: '/pdf'
-      preLoaderRoute: typeof AuthenticatedPdfRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/papers': {
-      id: '/_authenticated/papers'
-      path: '/papers'
-      fullPath: '/papers'
-      preLoaderRoute: typeof AuthenticatedPapersRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/notes': {
-      id: '/_authenticated/notes'
-      path: '/notes'
-      fullPath: '/notes'
-      preLoaderRoute: typeof AuthenticatedNotesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/flashcards': {
-      id: '/_authenticated/flashcards'
-      path: '/flashcards'
-      fullPath: '/flashcards'
-      preLoaderRoute: typeof AuthenticatedFlashcardsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/exam': {
-      id: '/_authenticated/exam'
-      path: '/exam'
-      fullPath: '/exam'
-      preLoaderRoute: typeof AuthenticatedExamRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -342,49 +203,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/bookmarks': {
-      id: '/_authenticated/bookmarks'
-      path: '/bookmarks'
-      fullPath: '/bookmarks'
-      preLoaderRoute: typeof AuthenticatedBookmarksRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/assignments': {
-      id: '/_authenticated/assignments'
-      path: '/assignments'
-      fullPath: '/assignments'
-      preLoaderRoute: typeof AuthenticatedAssignmentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRoute
-  AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
-  AuthenticatedFlashcardsRoute: typeof AuthenticatedFlashcardsRoute
-  AuthenticatedNotesRoute: typeof AuthenticatedNotesRoute
-  AuthenticatedPapersRoute: typeof AuthenticatedPapersRoute
-  AuthenticatedPdfRoute: typeof AuthenticatedPdfRoute
-  AuthenticatedPlannerRoute: typeof AuthenticatedPlannerRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRoute,
-  AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedExamRoute: AuthenticatedExamRoute,
-  AuthenticatedFlashcardsRoute: AuthenticatedFlashcardsRoute,
-  AuthenticatedNotesRoute: AuthenticatedNotesRoute,
-  AuthenticatedPapersRoute: AuthenticatedPapersRoute,
-  AuthenticatedPdfRoute: AuthenticatedPdfRoute,
-  AuthenticatedPlannerRoute: AuthenticatedPlannerRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
 }
