@@ -14,18 +14,16 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedResearchRouteImport } from './routes/_authenticated/research'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedPlannerRouteImport } from './routes/_authenticated/planner'
-import { Route as AuthenticatedPdfRouteImport } from './routes/_authenticated/pdf'
-import { Route as AuthenticatedPapersRouteImport } from './routes/_authenticated/papers'
-import { Route as AuthenticatedNotesRouteImport } from './routes/_authenticated/notes'
-import { Route as AuthenticatedFlashcardsRouteImport } from './routes/_authenticated/flashcards'
-import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
+import { Route as AuthenticatedMarketRouteImport } from './routes/_authenticated/market'
+import { Route as AuthenticatedDeveloperRouteImport } from './routes/_authenticated/developer'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
-import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated/bookmarks'
-import { Route as AuthenticatedAssignmentsRouteImport } from './routes/_authenticated/assignments'
+import { Route as AuthenticatedCalculatorRouteImport } from './routes/_authenticated/calculator'
+import { Route as AuthenticatedAutomationRouteImport } from './routes/_authenticated/automation'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -51,9 +49,19 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedResearchRoute = AuthenticatedResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -61,34 +69,14 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPlannerRoute = AuthenticatedPlannerRouteImport.update({
-  id: '/planner',
-  path: '/planner',
+const AuthenticatedMarketRoute = AuthenticatedMarketRouteImport.update({
+  id: '/market',
+  path: '/market',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedPdfRoute = AuthenticatedPdfRouteImport.update({
-  id: '/pdf',
-  path: '/pdf',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPapersRoute = AuthenticatedPapersRouteImport.update({
-  id: '/papers',
-  path: '/papers',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedNotesRoute = AuthenticatedNotesRouteImport.update({
-  id: '/notes',
-  path: '/notes',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedFlashcardsRoute = AuthenticatedFlashcardsRouteImport.update({
-  id: '/flashcards',
-  path: '/flashcards',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
-  id: '/exam',
-  path: '/exam',
+const AuthenticatedDeveloperRoute = AuthenticatedDeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -101,52 +89,47 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedBookmarksRoute = AuthenticatedBookmarksRouteImport.update({
-  id: '/bookmarks',
-  path: '/bookmarks',
+const AuthenticatedCalculatorRoute = AuthenticatedCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAssignmentsRoute =
-  AuthenticatedAssignmentsRouteImport.update({
-    id: '/assignments',
-    path: '/assignments',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
+const AuthenticatedAutomationRoute = AuthenticatedAutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
-  '/bookmarks': typeof AuthenticatedBookmarksRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/calculator': typeof AuthenticatedCalculatorRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam': typeof AuthenticatedExamRoute
-  '/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/notes': typeof AuthenticatedNotesRoute
-  '/papers': typeof AuthenticatedPapersRoute
-  '/pdf': typeof AuthenticatedPdfRoute
-  '/planner': typeof AuthenticatedPlannerRoute
+  '/developer': typeof AuthenticatedDeveloperRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/research': typeof AuthenticatedResearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
-  '/bookmarks': typeof AuthenticatedBookmarksRoute
+  '/automation': typeof AuthenticatedAutomationRoute
+  '/calculator': typeof AuthenticatedCalculatorRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam': typeof AuthenticatedExamRoute
-  '/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/notes': typeof AuthenticatedNotesRoute
-  '/papers': typeof AuthenticatedPapersRoute
-  '/pdf': typeof AuthenticatedPdfRoute
-  '/planner': typeof AuthenticatedPlannerRoute
+  '/developer': typeof AuthenticatedDeveloperRoute
+  '/market': typeof AuthenticatedMarketRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/research': typeof AuthenticatedResearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRoutesById {
@@ -155,18 +138,16 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/assignments': typeof AuthenticatedAssignmentsRoute
-  '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
+  '/_authenticated/automation': typeof AuthenticatedAutomationRoute
+  '/_authenticated/calculator': typeof AuthenticatedCalculatorRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/exam': typeof AuthenticatedExamRoute
-  '/_authenticated/flashcards': typeof AuthenticatedFlashcardsRoute
-  '/_authenticated/notes': typeof AuthenticatedNotesRoute
-  '/_authenticated/papers': typeof AuthenticatedPapersRoute
-  '/_authenticated/pdf': typeof AuthenticatedPdfRoute
-  '/_authenticated/planner': typeof AuthenticatedPlannerRoute
+  '/_authenticated/developer': typeof AuthenticatedDeveloperRoute
+  '/_authenticated/market': typeof AuthenticatedMarketRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/research': typeof AuthenticatedResearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
   '/api/chat': typeof ApiChatRoute
 }
 export interface FileRouteTypes {
@@ -175,36 +156,32 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/assignments'
-    | '/bookmarks'
+    | '/automation'
+    | '/calculator'
     | '/chat'
     | '/dashboard'
-    | '/exam'
-    | '/flashcards'
-    | '/notes'
-    | '/papers'
-    | '/pdf'
-    | '/planner'
+    | '/developer'
+    | '/market'
     | '/profile'
+    | '/research'
     | '/settings'
+    | '/workspace'
     | '/api/chat'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/assignments'
-    | '/bookmarks'
+    | '/automation'
+    | '/calculator'
     | '/chat'
     | '/dashboard'
-    | '/exam'
-    | '/flashcards'
-    | '/notes'
-    | '/papers'
-    | '/pdf'
-    | '/planner'
+    | '/developer'
+    | '/market'
     | '/profile'
+    | '/research'
     | '/settings'
+    | '/workspace'
     | '/api/chat'
   id:
     | '__root__'
@@ -212,18 +189,16 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
-    | '/_authenticated/assignments'
-    | '/_authenticated/bookmarks'
+    | '/_authenticated/automation'
+    | '/_authenticated/calculator'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
-    | '/_authenticated/exam'
-    | '/_authenticated/flashcards'
-    | '/_authenticated/notes'
-    | '/_authenticated/papers'
-    | '/_authenticated/pdf'
-    | '/_authenticated/planner'
+    | '/_authenticated/developer'
+    | '/_authenticated/market'
     | '/_authenticated/profile'
+    | '/_authenticated/research'
     | '/_authenticated/settings'
+    | '/_authenticated/workspace'
     | '/api/chat'
   fileRoutesById: FileRoutesById
 }
@@ -272,11 +247,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/research': {
+      id: '/_authenticated/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof AuthenticatedResearchRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/profile': {
@@ -286,46 +275,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/planner': {
-      id: '/_authenticated/planner'
-      path: '/planner'
-      fullPath: '/planner'
-      preLoaderRoute: typeof AuthenticatedPlannerRouteImport
+    '/_authenticated/market': {
+      id: '/_authenticated/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof AuthenticatedMarketRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/pdf': {
-      id: '/_authenticated/pdf'
-      path: '/pdf'
-      fullPath: '/pdf'
-      preLoaderRoute: typeof AuthenticatedPdfRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/papers': {
-      id: '/_authenticated/papers'
-      path: '/papers'
-      fullPath: '/papers'
-      preLoaderRoute: typeof AuthenticatedPapersRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/notes': {
-      id: '/_authenticated/notes'
-      path: '/notes'
-      fullPath: '/notes'
-      preLoaderRoute: typeof AuthenticatedNotesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/flashcards': {
-      id: '/_authenticated/flashcards'
-      path: '/flashcards'
-      fullPath: '/flashcards'
-      preLoaderRoute: typeof AuthenticatedFlashcardsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/exam': {
-      id: '/_authenticated/exam'
-      path: '/exam'
-      fullPath: '/exam'
-      preLoaderRoute: typeof AuthenticatedExamRouteImport
+    '/_authenticated/developer': {
+      id: '/_authenticated/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof AuthenticatedDeveloperRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -342,51 +303,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/bookmarks': {
-      id: '/_authenticated/bookmarks'
-      path: '/bookmarks'
-      fullPath: '/bookmarks'
-      preLoaderRoute: typeof AuthenticatedBookmarksRouteImport
+    '/_authenticated/calculator': {
+      id: '/_authenticated/calculator'
+      path: '/calculator'
+      fullPath: '/calculator'
+      preLoaderRoute: typeof AuthenticatedCalculatorRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/assignments': {
-      id: '/_authenticated/assignments'
-      path: '/assignments'
-      fullPath: '/assignments'
-      preLoaderRoute: typeof AuthenticatedAssignmentsRouteImport
+    '/_authenticated/automation': {
+      id: '/_authenticated/automation'
+      path: '/automation'
+      fullPath: '/automation'
+      preLoaderRoute: typeof AuthenticatedAutomationRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRoute
-  AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
+  AuthenticatedAutomationRoute: typeof AuthenticatedAutomationRoute
+  AuthenticatedCalculatorRoute: typeof AuthenticatedCalculatorRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
-  AuthenticatedFlashcardsRoute: typeof AuthenticatedFlashcardsRoute
-  AuthenticatedNotesRoute: typeof AuthenticatedNotesRoute
-  AuthenticatedPapersRoute: typeof AuthenticatedPapersRoute
-  AuthenticatedPdfRoute: typeof AuthenticatedPdfRoute
-  AuthenticatedPlannerRoute: typeof AuthenticatedPlannerRoute
+  AuthenticatedDeveloperRoute: typeof AuthenticatedDeveloperRoute
+  AuthenticatedMarketRoute: typeof AuthenticatedMarketRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedResearchRoute: typeof AuthenticatedResearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRoute,
-  AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
+  AuthenticatedAutomationRoute: AuthenticatedAutomationRoute,
+  AuthenticatedCalculatorRoute: AuthenticatedCalculatorRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedExamRoute: AuthenticatedExamRoute,
-  AuthenticatedFlashcardsRoute: AuthenticatedFlashcardsRoute,
-  AuthenticatedNotesRoute: AuthenticatedNotesRoute,
-  AuthenticatedPapersRoute: AuthenticatedPapersRoute,
-  AuthenticatedPdfRoute: AuthenticatedPdfRoute,
-  AuthenticatedPlannerRoute: AuthenticatedPlannerRoute,
+  AuthenticatedDeveloperRoute: AuthenticatedDeveloperRoute,
+  AuthenticatedMarketRoute: AuthenticatedMarketRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedResearchRoute: AuthenticatedResearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -403,13 +360,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

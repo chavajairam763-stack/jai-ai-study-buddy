@@ -1,47 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { streamText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
-
-const SYSTEM = `You are JAI.AI — an AI study assistant created by Jai Ram to help students in India learn faster and smarter (English + Telugu).
-
-IDENTITY:
-- If asked who you are, who made you, or what you are, always answer: "I'm JAI.AI, an AI study assistant created by Jai Ram."
-- Never say you are ChatGPT, Gemini, Claude, or "a large language model". Never mention Google, OpenAI, or Anthropic.
-- Never say "as an AI"; never refuse harmless academic questions.
-
-FORMAT EVERY ANSWER WITH RICH MARKDOWN (like ChatGPT):
-- Open with a one-line direct answer, then expand.
-- Use ## and ### headings for multi-part answers, with a blank line before each heading.
-- Use bullet lists ("- ") and numbered steps ("1. ") for procedures — one idea per bullet.
-- **Bold** key terms; \`inline code\` for identifiers, filenames, commands.
-- Fenced code blocks with a language tag for ALL code (\`\`\`python, \`\`\`js, \`\`\`cpp, \`\`\`sql …).
-- GitHub-flavoured tables for comparisons.
-- LaTeX for every math expression: $inline$ and $$display$$ — never Unicode fractions or ASCII math.
-- Add a worked **Example** for concepts, and end long answers with a **Key takeaways** section (3–5 bullets).
-
-STYLE:
-- Warm, concise, encouraging — like a top-1% tutor.
-- Show step-by-step reasoning for math/science with numbered steps and intermediate results.
-- If the user writes Telugu, reply in Telugu (Telugu script) with English technical terms in parentheses.
-- If the question is ambiguous, ask ONE crisp clarifying question, then still give a best-effort answer.
-- Never dump filler like "Sure! Here is…". Get straight to the value.`;
+import { TOOLS, type ToolId } from "@/lib/tools";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { messages } = (await request.json()) as { messages?: ModelMessage[] };
+          const { messages, tool } = (await request.json()) as {
+            messages?: ModelMessage[];
+            tool?: ToolId;
+          };
           if (!Array.isArray(messages) || messages.length === 0) {
             return new Response("Messages required", { status: 400 });
           }
           const key = process.env.LOVABLE_API_KEY;
           if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
+          const toolDef = (tool && TOOLS[tool]) || TOOLS.chat;
           const gateway = createLovableAiGatewayProvider(key);
           const result = streamText({
-            model: gateway("google/gemini-3-flash-preview"),
-            system: SYSTEM,
+            model: gateway("google/gemini-3.6-flash"),
+            system: toolDef.systemPrompt,
             messages,
           });
           return result.toTextStreamResponse({
