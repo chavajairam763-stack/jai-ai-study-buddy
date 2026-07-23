@@ -31,7 +31,7 @@ function Workspace() {
         for (let i = 1; i <= max; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          parts.push(content.items.map((it: { str?: string }) => (typeof it.str === "string" ? it.str : "")).join(" "));
+          parts.push(content.items.map((it) => ("str" in it ? it.str : "")).join(" "));
         }
         setDocText(parts.join("\n\n").slice(0, 40_000));
         setFileName(file.name);
