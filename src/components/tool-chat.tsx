@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
-import { Send, Copy, RefreshCw, Sparkles, Trash2, Square, Bookmark, Share2 } from "lucide-react";
+import { Send, Copy, RefreshCw, Sparkles, Trash2, Square, Bookmark, Share2, Maximize2, Baby } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tool } from "@/lib/tools";
