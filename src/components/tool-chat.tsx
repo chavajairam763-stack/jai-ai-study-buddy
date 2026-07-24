@@ -121,6 +121,14 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     await streamFrom(next, convId);
   };
 
+  const sendPreset = async (text: string) => {
+    if (loading) return;
+    const next: Msg[] = [...messages, { role: "user", content: text }];
+    const convId = await ensureConversation(text);
+    if (convId) await saveMessage(convId, "user", text);
+    await streamFrom(next, convId);
+  };
+
   const regen = async () => {
     if (loading) return;
     let cut = messages.length;
