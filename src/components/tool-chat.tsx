@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
-import { Send, Copy, RefreshCw, Sparkles, Trash2, Square, Bookmark, Share2 } from "lucide-react";
+import { Send, Copy, RefreshCw, Sparkles, Trash2, Square, Bookmark, Share2, Maximize2, Baby } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tool } from "@/lib/tools";
@@ -121,6 +121,14 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     await streamFrom(next, convId);
   };
 
+  const sendPreset = async (text: string) => {
+    if (loading) return;
+    const next: Msg[] = [...messages, { role: "user", content: text }];
+    const convId = await ensureConversation(text);
+    if (convId) await saveMessage(convId, "user", text);
+    await streamFrom(next, convId);
+  };
+
   const regen = async () => {
     if (loading) return;
     let cut = messages.length;
@@ -215,6 +223,12 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                       <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
                         <IconBtn label="Copy" onClick={() => { navigator.clipboard.writeText(m.content); toast.success("Copied"); }}><Copy className="h-3.5 w-3.5" /></IconBtn>
                         <IconBtn label="Regenerate" onClick={regen}><RefreshCw className="h-3.5 w-3.5" /></IconBtn>
+                        {tool.id === "chat" && i === messages.length - 1 && (
+                          <>
+                            <IconBtn label="Expand answer" onClick={() => sendPreset("Expand — give me the full, deep-dive explanation of that answer with background, details, edge cases, and Key takeaways.")}><Maximize2 className="h-3.5 w-3.5" /></IconBtn>
+                            <IconBtn label="Explain simpler" onClick={() => sendPreset("Explain simpler — rewrite that in plain, friendly language with a real-world analogy, no jargon, short sentences.")}><Baby className="h-3.5 w-3.5" /></IconBtn>
+                          </>
+                        )}
                         <IconBtn label="Bookmark" onClick={() => bookmark(m.content)}><Bookmark className="h-3.5 w-3.5" /></IconBtn>
                         <IconBtn label="Share" onClick={() => share(m.content)}><Share2 className="h-3.5 w-3.5" /></IconBtn>
                       </div>
