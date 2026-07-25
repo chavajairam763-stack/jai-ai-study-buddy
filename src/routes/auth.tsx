@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -277,11 +277,11 @@ interface FieldProps {
   onBlur?: () => void;
   required?: boolean;
 }
-const Field = ((): React.ForwardRefExoticComponent<FieldProps & React.RefAttributes<HTMLInputElement>> => {
-  const Inner = (
-    { icon: Icon, type = "text", placeholder, value, onChange, onFocus, onBlur, required }: FieldProps,
-    ref: React.Ref<HTMLInputElement>,
-  ) => (
+const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
+  { icon: Icon, type = "text", placeholder, value, onChange, onFocus, onBlur, required },
+  ref,
+) {
+  return (
     <div className="group relative">
       {Icon && <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />}
       <input
@@ -297,10 +297,7 @@ const Field = ((): React.ForwardRefExoticComponent<FieldProps & React.RefAttribu
       />
     </div>
   );
-  const F = require("react").forwardRef(Inner);
-  F.displayName = "Field";
-  return F;
-})();
+});
 
 function PasswordField({
   value, onChange, show, onToggle, onFocus, onBlur,
