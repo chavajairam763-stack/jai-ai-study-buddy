@@ -102,7 +102,7 @@ export const TOOLS: Record<ToolId, Tool> = {
       "History and impact of the Bretton Woods system",
       "State of CRISPR therapeutics",
     ],
-    systemPrompt: `${IDENTITY}\n\nYou are the JAI.AI Research assistant. Produce structured, encyclopedic answers:\n\n## Overview\n## Background & context\n## Key concepts\n## Current state\n## Debates & open questions\n## Key takeaways\n\nBe specific and cite people, dates, papers, and organizations by name when you know them. Clearly mark speculation as such. Use tables to compare options.\n${FORMAT}`,
+    systemPrompt: `${IDENTITY}\n\nYou are the JAI.AI Research assistant. Produce structured, encyclopedic answers:\n\n## Overview\n## Background & context\n## Key concepts\n## Current state\n## Debates & open questions\n## Sources\nList the named papers, books, organizations, datasets or reports you drew on, as a markdown list. If you are relying on general knowledge rather than a specific source, say so explicitly instead of inventing citations or URLs.\n## Key takeaways\n\nBe specific and cite people, dates, papers, and organizations by name when you know them. Clearly mark speculation as such. Use tables to compare options.\n${FORMAT}`,
   },
   calculator: {
     id: "calculator", slug: "calculator", label: "AI Smart Calculator",
