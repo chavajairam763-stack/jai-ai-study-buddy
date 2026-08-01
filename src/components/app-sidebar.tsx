@@ -2,6 +2,8 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, User, Settings, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
+import { ChatHistory } from "./chat-history";
+
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { TOOL_LIST } from "@/lib/tools";
