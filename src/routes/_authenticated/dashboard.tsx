@@ -197,16 +197,39 @@ function Dashboard() {
   );
 }
 
+/** Counts up to `value` with an eased animation once the data arrives. */
+function AnimatedNumber({ value }: { value: number }) {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (value <= 0) { setShown(0); return; }
+    let raf = 0;
+    const start = performance.now();
+    const duration = 700;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setShown(Math.round(value * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{shown}</>;
+}
+
 function Stat({ icon: Icon, label, value, hint }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number | undefined; hint?: string }) {
   return (
-    <div className="glass rounded-2xl p-5">
+    <div className="glass rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:glow-sm">
       <div className="inline-flex rounded-xl bg-gradient-primary p-2 shadow-lg"><Icon className="h-4 w-4 text-primary-foreground" /></div>
-      <div className={`mt-3 text-2xl font-bold ${value === undefined ? "opacity-40" : ""}`}>{value ?? "—"}</div>
+      <div className={`mt-3 text-2xl font-bold tabular-nums ${value === undefined ? "opacity-40" : ""}`}>
+        {value === undefined ? "—" : <AnimatedNumber value={value} />}
+      </div>
       <div className="text-xs text-muted-foreground">{label}</div>
       {hint && <div className="mt-1 text-[11px] text-muted-foreground/60">{hint}</div>}
     </div>
   );
 }
+
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
