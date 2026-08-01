@@ -1,35 +1,91 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
-import { Send, Copy, RefreshCw, Sparkles, Trash2, Square, Bookmark, Share2, Maximize2, Baby } from "lucide-react";
+import {
+  Send, Copy, RefreshCw, Sparkles, Plus, Square, Bookmark, Share2,
+  Maximize2, Baby, Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tool } from "@/lib/tools";
-
-type Msg = { role: "user" | "assistant"; content: string };
+import {
+  consumeOpen, getSession, historyBus, onOpenRequest, setSession, type Msg,
+} from "@/lib/chat-store";
 
 export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: string }) {
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [input, setInput] = useState("");
+  const cached = getSession(tool.id);
+  const [messages, setMessages] = useState<Msg[]>(cached.messages);
+  const [conversationId, setConversationId] = useState<string | null>(cached.conversationId);
+  const [input, setInput] = useState(cached.input);
   const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const userIdRef = useRef<string | null>(null);
+  const stickRef = useRef(true);
+
+  // Typewriter buffers
+  const fullRef = useRef("");
+  const shownRef = useRef("");
+  const rafRef = useRef<number | null>(null);
+  const streamDoneRef = useRef(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => { userIdRef.current = data.user?.id ?? null; });
   }, []);
 
-  // Reset when tool changes
+  /* Persist session so state survives navigation between tools */
   useEffect(() => {
-    setMessages([]);
-    setConversationId(null);
-    setInput("");
+    setSession(tool.id, { messages, conversationId, input });
+  }, [tool.id, messages, conversationId, input]);
+
+  /* Restore cached session when the tool changes */
+  useEffect(() => {
+    const s = getSession(tool.id);
+    setMessages(s.messages);
+    setConversationId(s.conversationId);
+    setInput(s.input);
   }, [tool.id]);
 
+  const loadConversation = useCallback(async (id: string | null) => {
+    if (!id) {
+      setMessages([]);
+      setConversationId(null);
+      return;
+    }
+    setRestoring(true);
+    const { data } = await supabase
+      .from("chat_messages")
+      .select("role,content")
+      .eq("conversation_id", id)
+      .order("created_at", { ascending: true });
+    setMessages(((data ?? []) as Msg[]).filter((m) => m.role === "user" || m.role === "assistant"));
+    setConversationId(id);
+    setRestoring(false);
+  }, []);
+
+  /* Sidebar asked us to open a conversation */
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const handle = () => {
+      const req = consumeOpen(tool.id);
+      if (req) void loadConversation(req.conversationId);
+    };
+    handle();
+    return onOpenRequest(handle);
+  }, [tool.id, loadConversation]);
+
+  /* Smart auto-scroll: only stick to bottom when user is already near it */
+  const onScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  };
+
+  useEffect(() => {
+    if (!stickRef.current) return;
+    const el = scrollRef.current;
+    el?.scrollTo({ top: el.scrollHeight, behavior: loading ? "auto" : "smooth" });
   }, [messages, loading]);
 
   useEffect(() => {
@@ -39,11 +95,13 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     el.style.height = Math.min(el.scrollHeight, 200) + "px";
   }, [input]);
 
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+
   const ensureConversation = useCallback(async (firstUserText: string): Promise<string | null> => {
     if (conversationId) return conversationId;
     const uid = userIdRef.current;
     if (!uid) return null;
-    const title = firstUserText.slice(0, 60).replace(/\s+/g, " ").trim() || "New chat";
+    const title = titleFrom(firstUserText);
     const { data, error } = await supabase
       .from("conversations")
       .insert({ user_id: uid, tool: tool.id, title })
@@ -51,21 +109,52 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
       .single();
     if (error || !data) return null;
     setConversationId(data.id);
+    historyBus.emit();
     return data.id;
   }, [conversationId, tool.id]);
 
   const saveMessage = useCallback(async (convId: string, role: "user" | "assistant", content: string) => {
     const uid = userIdRef.current;
     if (!uid) return;
-    await supabase.from("chat_messages").insert({
-      user_id: uid, conversation_id: convId, role, content,
-    });
+    await supabase.from("chat_messages").insert({ user_id: uid, conversation_id: convId, role, content });
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
+    historyBus.emit();
+  }, []);
+
+  /** rAF typewriter — reveals buffered tokens smoothly at ~60fps */
+  const pumpTypewriter = useCallback(() => {
+    if (rafRef.current) return;
+    const tick = () => {
+      const full = fullRef.current;
+      const shown = shownRef.current;
+      if (shown.length < full.length) {
+        const remaining = full.length - shown.length;
+        const step = Math.max(2, Math.ceil(remaining / 6));
+        shownRef.current = full.slice(0, shown.length + step);
+        const text = shownRef.current;
+        setMessages((ms) => {
+          const copy = ms.slice();
+          copy[copy.length - 1] = { role: "assistant", content: text };
+          return copy;
+        });
+      }
+      if (!streamDoneRef.current || shownRef.current.length < fullRef.current.length) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = null;
+        setLoading(false);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
   }, []);
 
   const streamFrom = useCallback(async (history: Msg[], convId: string | null) => {
     setLoading(true);
+    stickRef.current = true;
     setMessages([...history, { role: "assistant", content: "" }]);
+    fullRef.current = "";
+    shownRef.current = "";
+    streamDoneRef.current = false;
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
@@ -82,51 +171,51 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
         const text = await res.text().catch(() => "");
         throw new Error(text || `HTTP ${res.status}`);
       }
+      pumpTypewriter();
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let acc = "";
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((ms) => {
-          const copy = ms.slice();
-          copy[copy.length - 1] = { role: "assistant", content: acc };
-          return copy;
-        });
+        fullRef.current += decoder.decode(value, { stream: true });
       }
+      streamDoneRef.current = true;
+      const acc = fullRef.current;
       if (convId && acc) await saveMessage(convId, "assistant", acc);
     } catch (err) {
-      if ((err as Error).name === "AbortError") return;
+      streamDoneRef.current = true;
+      if ((err as Error).name === "AbortError") {
+        // keep whatever streamed so far
+        if (convId && fullRef.current) await saveMessage(convId, "assistant", fullRef.current);
+        return;
+      }
       const msg = err instanceof Error ? err.message : "Chat failed";
       toast.error(
         msg.includes("402") ? "AI credits exhausted. Please add credits to continue." :
         msg.includes("429") ? "Rate limited — try again in a moment." : msg,
       );
       setMessages((ms) => ms.slice(0, -1));
-    } finally {
       setLoading(false);
+    } finally {
       abortRef.current = null;
+      if (streamDoneRef.current && shownRef.current.length >= fullRef.current.length) setLoading(false);
     }
-  }, [tool.id, extraContext, saveMessage]);
+  }, [tool.id, extraContext, saveMessage, pumpTypewriter]);
 
-  const submit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const text = input.trim();
+  const send = async (text: string) => {
     if (!text || loading) return;
     const next: Msg[] = [...messages, { role: "user", content: text }];
-    setInput("");
     const convId = await ensureConversation(text);
     if (convId) await saveMessage(convId, "user", text);
     await streamFrom(next, convId);
   };
 
-  const sendPreset = async (text: string) => {
-    if (loading) return;
-    const next: Msg[] = [...messages, { role: "user", content: text }];
-    const convId = await ensureConversation(text);
-    if (convId) await saveMessage(convId, "user", text);
-    await streamFrom(next, convId);
+  const submit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput("");
+    void send(text);
   };
 
   const regen = async () => {
@@ -140,17 +229,24 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     await streamFrom(trimmed, conversationId);
   };
 
-  const stop = () => abortRef.current?.abort();
+  const stop = () => {
+    abortRef.current?.abort();
+    streamDoneRef.current = true;
+    fullRef.current = shownRef.current;
+  };
 
-  const clearAll = () => { setMessages([]); setConversationId(null); };
+  const newChat = () => {
+    setMessages([]);
+    setConversationId(null);
+    setInput("");
+    taRef.current?.focus();
+  };
 
   const bookmark = async (content: string) => {
     const uid = userIdRef.current;
     if (!uid) return toast.error("Sign in to bookmark");
-    const title = content.split("\n")[0].slice(0, 80).trim() || tool.label;
-    const { error } = await supabase.from("bookmarks").insert({
-      user_id: uid, kind: "message", title, content,
-    });
+    const title = content.split("\n")[0].replace(/^#+\s*/, "").slice(0, 80).trim() || tool.label;
+    const { error } = await supabase.from("bookmarks").insert({ user_id: uid, kind: "message", title, content });
     if (error) toast.error("Couldn't save"); else toast.success("Bookmarked");
   };
 
@@ -159,6 +255,21 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
       if (navigator.share) await navigator.share({ title: `JAI.AI · ${tool.label}`, text: content });
       else { await navigator.clipboard.writeText(content); toast.success("Copied"); }
     } catch { /* dismissed */ }
+  };
+
+  const exportMarkdown = () => {
+    if (!messages.length) return;
+    const md = [`# ${tool.label} — JAI.AI`, "", ...messages.map((m) =>
+      m.role === "user" ? `## You\n\n${m.content}` : `## JAI.AI\n\n${m.content}`,
+    )].join("\n\n");
+    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jai-${tool.slug}-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported");
   };
 
   const Icon = tool.icon;
@@ -176,14 +287,24 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
           </div>
         </div>
         {messages.length > 0 && (
-          <button onClick={clearAll} className="glass flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs hover:bg-white/10" aria-label="New chat">
-            <Trash2 className="h-3.5 w-3.5" /> New
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button onClick={exportMarkdown} className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors hover:bg-white/10" aria-label="Export conversation">
+              <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Export</span>
+            </button>
+            <button onClick={newChat} className="glass flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-colors hover:bg-white/10" aria-label="New chat">
+              <Plus className="h-3.5 w-3.5" /> New
+            </button>
+          </div>
         )}
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto pb-4 pr-1">
-        {messages.length === 0 && (
+      <div ref={scrollRef} onScroll={onScroll} className="flex-1 space-y-5 overflow-y-auto pb-4 pr-1 [scrollbar-gutter:stable]">
+        {restoring && (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton h-20" />)}
+          </div>
+        )}
+        {!restoring && messages.length === 0 && (
           <div className="glass mx-auto mt-4 max-w-lg rounded-2xl p-6 text-center sm:mt-8 sm:p-8">
             <div className={`mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${tool.accent} glow-sm`}>
               <Icon className="h-7 w-7 text-black" />
@@ -194,16 +315,16 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
               {tool.suggestions.map((s) => (
                 <button
                   key={s}
-                  onClick={() => { setInput(s); taRef.current?.focus(); }}
-                  className="glass rounded-xl px-3 py-2 text-sm transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:glow-sm"
+                  onClick={() => void send(s)}
+                  className="glass rounded-xl px-3 py-2.5 text-sm transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:glow-sm"
                 >{s}</button>
               ))}
             </div>
           </div>
         )}
         {messages.map((m, i) => {
-          const isLastAssistant = i === messages.length - 1 && m.role === "assistant";
-          const streaming = loading && isLastAssistant;
+          const isLast = i === messages.length - 1;
+          const streaming = loading && isLast && m.role === "assistant";
           return (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               <div className={`min-w-0 max-w-[92%] sm:max-w-[85%] ${m.role === "user" ? "" : "w-full"}`}>
@@ -211,8 +332,13 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                   <div className="whitespace-pre-wrap break-words rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm text-primary-foreground shadow-lg [overflow-wrap:anywhere]">{m.content}</div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="glass rounded-2xl px-4 py-3">
-                      {m.content ? <Markdown content={m.content} /> : (
+                    <div className="glass rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4">
+                      {m.content ? (
+                        <>
+                          <Markdown content={m.content} />
+                          {streaming && <span className="caret" aria-hidden />}
+                        </>
+                      ) : (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Sparkles className="h-4 w-4 animate-pulse text-primary" />
                           Thinking<span className="ml-1 inline-flex text-primary"><span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" /></span>
@@ -223,10 +349,10 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                       <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
                         <IconBtn label="Copy" onClick={() => { navigator.clipboard.writeText(m.content); toast.success("Copied"); }}><Copy className="h-3.5 w-3.5" /></IconBtn>
                         <IconBtn label="Regenerate" onClick={regen}><RefreshCw className="h-3.5 w-3.5" /></IconBtn>
-                        {tool.id === "chat" && i === messages.length - 1 && (
+                        {isLast && (
                           <>
-                            <IconBtn label="Expand answer" onClick={() => sendPreset("Expand — give me the full, deep-dive explanation of that answer with background, details, edge cases, and Key takeaways.")}><Maximize2 className="h-3.5 w-3.5" /></IconBtn>
-                            <IconBtn label="Explain simpler" onClick={() => sendPreset("Explain simpler — rewrite that in plain, friendly language with a real-world analogy, no jargon, short sentences.")}><Baby className="h-3.5 w-3.5" /></IconBtn>
+                            <IconBtn label="Expand answer" onClick={() => void send("Expand — give me the full, deep-dive explanation of that answer with background, details, edge cases, and Key takeaways.")}><Maximize2 className="h-3.5 w-3.5" /></IconBtn>
+                            <IconBtn label="Explain simpler" onClick={() => void send("Explain simpler — rewrite that in plain, friendly language with a real-world analogy, no jargon, short sentences.")}><Baby className="h-3.5 w-3.5" /></IconBtn>
                           </>
                         )}
                         <IconBtn label="Bookmark" onClick={() => bookmark(m.content)}><Bookmark className="h-3.5 w-3.5" /></IconBtn>
@@ -253,7 +379,7 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
           className="max-h-48 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
         />
         {loading ? (
-          <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
+          <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground transition-colors hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
         ) : (
           <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send"><Send className="h-4 w-4" /></button>
         )}
@@ -262,9 +388,18 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
   );
 }
 
+/** Auto-generates a readable conversation title from the first message. */
+function titleFrom(text: string): string {
+  const clean = text.replace(/\s+/g, " ").replace(/^["'`]+|["'`]+$/g, "").trim();
+  const firstSentence = clean.split(/(?<=[.?!])\s/)[0] ?? clean;
+  const base = (firstSentence.length > 8 ? firstSentence : clean).slice(0, 56).trim();
+  const titled = base.charAt(0).toUpperCase() + base.slice(1);
+  return (clean.length > 56 ? `${titled}…` : titled) || "New chat";
+}
+
 function IconBtn({ children, onClick, label }: { children: React.ReactNode; onClick?: () => void; label: string }) {
   return (
-    <button onClick={onClick} aria-label={label} title={label} className="rounded-lg p-1.5 transition-colors hover:bg-white/10">
+    <button onClick={onClick} aria-label={label} title={label} className="rounded-lg p-1.5 transition-colors hover:bg-white/10 hover:text-foreground">
       {children}
     </button>
   );
