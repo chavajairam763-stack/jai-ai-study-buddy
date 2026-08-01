@@ -2,6 +2,8 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, User, Settings, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
+import { ChatHistory } from "./chat-history";
+
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { TOOL_LIST } from "@/lib/tools";
@@ -53,8 +55,10 @@ export function AppSidebar() {
       {TOOL_LIST.map((t) => (
         <NavLink key={t.slug} to={`/${t.slug}`} label={t.label} Icon={t.icon} />
       ))}
+      <ChatHistory onNavigate={() => setOpen(false)} />
       <div className="mt-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Account</div>
       {secondary.map((it) => <NavLink key={it.to} to={it.to} label={it.label} Icon={it.icon} />)}
+
       <div className="mt-auto pt-4">
         <button
           onClick={signOut}

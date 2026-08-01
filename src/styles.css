@@ -156,3 +156,27 @@
 @keyframes pulse-glow { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.04); } }
 .animate-float { animation: float-slow 6s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* Blinking caret shown while the assistant is generating */
+@keyframes caret-blink { 0%, 45% { opacity: 1; } 55%, 100% { opacity: 0; } }
+.caret {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  background: var(--primary);
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+/* Prose rhythm for AI answers */
+.prose :where(h2):not(:where([class~="not-prose"] *)) { margin-top: 1.35em; margin-bottom: 0.5em; }
+.prose :where(h3):not(:where([class~="not-prose"] *)) { margin-top: 1.1em; margin-bottom: 0.4em; }
+.prose :where(ul, ol):not(:where([class~="not-prose"] *)) { margin-top: 0.5em; margin-bottom: 0.75em; }
+.prose :where(li):not(:where([class~="not-prose"] *)) { margin-top: 0.2em; margin-bottom: 0.2em; }
+.prose :where(p):not(:where([class~="not-prose"] *)) { margin-top: 0.55em; margin-bottom: 0.55em; line-height: 1.72; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

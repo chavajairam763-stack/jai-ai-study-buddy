@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      automations: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          last_run_at: string | null
+          name: string
+          run_count: number
+          schedule: string
+          status: string
+          steps: Json
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          last_run_at?: string | null
+          name: string
+          run_count?: number
+          schedule?: string
+          status?: string
+          steps?: Json
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          last_run_at?: string | null
+          name?: string
+          run_count?: number
+          schedule?: string
+          status?: string
+          steps?: Json
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           content: string | null
