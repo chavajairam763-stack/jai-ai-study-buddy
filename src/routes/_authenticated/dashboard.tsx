@@ -151,7 +151,7 @@ function Dashboard() {
               {s.recent.map((c) => {
                 const tool = TOOLS[c.tool] ?? TOOLS.chat;
                 return (
-                  <Link key={c.id} to={`/${tool.slug}`} className="glass flex items-center gap-3 rounded-xl p-4 transition-colors hover:bg-white/5">
+                  <Link key={c.id} to={`/${tool.slug}` as "/chat"} className="glass flex items-center gap-3 rounded-xl p-4 transition-colors hover:bg-white/5">
                     <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${tool.accent}`}>
                       <tool.icon className="h-4 w-4 text-black" />
                     </div>
