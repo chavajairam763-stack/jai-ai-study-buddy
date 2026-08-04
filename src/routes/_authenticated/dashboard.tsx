@@ -122,7 +122,7 @@ function Dashboard() {
           {TOOL_LIST.map((t) => (
             <Link
               key={t.slug}
-              to={`/${t.slug}`}
+              to={`/${t.slug}` as "/chat"}
               className="glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:glow-sm"
             >
               <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-2.5 shadow-lg`}>
