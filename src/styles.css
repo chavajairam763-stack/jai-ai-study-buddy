@@ -160,13 +160,13 @@
 /* ── Premium LED strip tool cards ─────────────────────────── */
 @keyframes led-travel {
   0%   { transform: translate3d(-40%, 0, 0); opacity: 0; }
-  15%  { opacity: 0.6; }
-  70%  { opacity: 0.6; }
+  15%  { opacity: 1; }
+  70%  { opacity: 1; }
   100% { transform: translate3d(140%, 0, 0); opacity: 0; }
 }
 @keyframes led-base-pulse {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 0.6; }
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
 }
 
 @utility lux-card {
@@ -184,61 +184,59 @@
     box-shadow 0.35s ease,
     background-color 0.35s ease;
 
-  /* static soft gold strip under the card (subtle 3s pulse) */
+  /* static gold strips on the top AND bottom edges (subtle 3s pulse) */
   &::before {
     content: "";
     position: absolute;
-    left: 8%;
-    right: 8%;
-    bottom: -10px;
-    height: 14px;
+    left: 6%;
+    right: 6%;
+    top: -12px;
+    bottom: -12px;
     z-index: -1;
     pointer-events: none;
-    border-radius: 999px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      #f5b942 20%,
-      #f5b942 80%,
-      transparent
-    );
-    filter: blur(22px);
-    opacity: 0.35;
+    background-image:
+      linear-gradient(90deg, transparent, rgba(245, 185, 66, 0.9) 20%, rgba(245, 185, 66, 0.9) 80%, transparent),
+      linear-gradient(90deg, transparent, rgba(245, 185, 66, 0.9) 20%, rgba(245, 185, 66, 0.9) 80%, transparent);
+    background-repeat: no-repeat;
+    background-size: 100% 16px, 100% 16px;
+    background-position: 0 0, 0 100%;
+    filter: blur(30px);
+    opacity: 0.7;
     will-change: opacity;
     animation: led-base-pulse 3s ease-in-out infinite;
   }
 
-  /* travelling LED highlight, left → right, fades and repeats */
+  /* travelling LED highlight on both edges, left → right, fades and repeats */
   &::after {
     content: "";
     position: absolute;
     left: 0;
-    bottom: -12px;
+    top: -14px;
+    bottom: -14px;
     width: 45%;
-    height: 18px;
     z-index: -1;
     pointer-events: none;
-    border-radius: 999px;
-    background: radial-gradient(
-      closest-side,
-      #f5b942,
-      rgba(245, 185, 66, 0.35) 60%,
-      transparent 100%
-    );
-    filter: blur(26px);
+    background-image:
+      radial-gradient(closest-side, rgba(245, 185, 66, 1), rgba(245, 185, 66, 0.5) 60%, transparent 100%),
+      radial-gradient(closest-side, rgba(245, 185, 66, 1), rgba(245, 185, 66, 0.5) 60%, transparent 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 22px, 100% 22px;
+    background-position: 0 0, 0 100%;
+    filter: blur(30px);
     opacity: 0;
     will-change: transform, opacity;
     animation: led-travel 2.5s linear infinite;
   }
 
   &:hover, &:focus-visible {
-    border-color: oklch(0.84 0.13 85 / 0.35);
+    border-color: oklch(0.84 0.13 85 / 0.5);
     box-shadow:
       0 1px 0 oklch(1 0 0 / 0.08) inset,
       0 26px 55px -26px oklch(0 0 0 / 0.85),
-      0 0 26px oklch(0.84 0.13 85 / 0.18);
+      0 0 40px oklch(0.84 0.13 85 / 0.35);
   }
 }
+
 
 /* stagger so strips don't run in lockstep */
 .lux-card:nth-child(3n + 2)::after { animation-delay: -0.8s; }
