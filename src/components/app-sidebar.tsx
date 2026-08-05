@@ -33,14 +33,16 @@ export function AppSidebar() {
     return (
       <Link
         to={to}
+        preload="render"
         onClick={() => setOpen(false)}
         className={cn(
-          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
+          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 active:scale-[0.98]",
           active
             ? "bg-gradient-primary text-primary-foreground glow-sm"
             : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
         )}
       >
+
         <Icon className="h-4 w-4 shrink-0" />
         <span className="truncate">{label}</span>
       </Link>
