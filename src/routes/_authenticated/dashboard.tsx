@@ -118,14 +118,15 @@ function Dashboard() {
       {/* Tools grid */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground/70">AI Tools</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 pb-4 sm:grid-cols-2 lg:grid-cols-3">
           {TOOL_LIST.map((t) => (
             <Link
               key={t.slug}
               to={`/${t.slug}` as "/chat"}
-              className="glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:glow-sm"
+              preload="viewport"
+              className="lux-card group relative overflow-hidden p-5"
             >
-              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-2.5 shadow-lg`}>
+              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-2.5 shadow-lg transition-transform duration-300 group-hover:scale-105`}>
                 <t.icon className="h-5 w-5 text-black" />
               </div>
               <h3 className="font-semibold">{t.label}</h3>
@@ -134,6 +135,7 @@ function Dashboard() {
             </Link>
           ))}
         </div>
+
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
