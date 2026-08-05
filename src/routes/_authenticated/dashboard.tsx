@@ -235,7 +235,7 @@ function Stat({ icon: Icon, label, value, hint }: { icon: React.ComponentType<{ 
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
-    <Link to={to} className="glass flex items-center gap-2.5 rounded-xl p-3.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:bg-white/5 hover:glow-sm">
+    <Link to={to} preload="render" className="glass flex items-center gap-2.5 rounded-xl p-3.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white/5 hover:glow-sm active:scale-[0.98]">
       <Icon className="h-4 w-4 text-primary" />
       <span className="truncate">{label}</span>
     </Link>
