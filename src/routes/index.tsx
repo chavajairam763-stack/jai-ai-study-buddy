@@ -74,14 +74,15 @@ function Landing() {
           <h2 className="text-3xl font-bold md:text-4xl">Seven tools, <span className="text-gradient">one workspace</span></h2>
           <p className="mt-3 text-muted-foreground">Each tool has its own expert prompt, UI and workflow.</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 pb-4 sm:grid-cols-2 lg:grid-cols-3">
           {TOOL_LIST.map((t) => (
             <Link
               key={t.slug}
               to={ctaTo}
-              className="glass group relative overflow-hidden rounded-2xl p-6 transition-all hover:-translate-y-1 hover:glow-sm"
+              preload="viewport"
+              className="lux-card group relative overflow-hidden p-6"
             >
-              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-3 shadow-lg`}>
+              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-3 shadow-lg transition-transform duration-300 group-hover:scale-105`}>
                 <t.icon className="h-6 w-6 text-black" />
               </div>
               <h3 className="text-lg font-semibold">{t.label}</h3>
@@ -90,6 +91,7 @@ function Landing() {
             </Link>
           ))}
         </div>
+
       </section>
 
       {/* Why */}
