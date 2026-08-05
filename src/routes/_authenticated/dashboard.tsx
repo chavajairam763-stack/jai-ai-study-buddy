@@ -118,14 +118,15 @@ function Dashboard() {
       {/* Tools grid */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-widest text-muted-foreground/70">AI Tools</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 pb-4 sm:grid-cols-2 lg:grid-cols-3">
           {TOOL_LIST.map((t) => (
             <Link
               key={t.slug}
               to={`/${t.slug}` as "/chat"}
-              className="glass group relative overflow-hidden rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:glow-sm"
+              preload="viewport"
+              className="lux-card group relative overflow-hidden p-5"
             >
-              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-2.5 shadow-lg`}>
+              <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${t.accent} p-2.5 shadow-lg transition-transform duration-300 group-hover:scale-105`}>
                 <t.icon className="h-5 w-5 text-black" />
               </div>
               <h3 className="font-semibold">{t.label}</h3>
@@ -134,6 +135,7 @@ function Dashboard() {
             </Link>
           ))}
         </div>
+
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -233,7 +235,7 @@ function Stat({ icon: Icon, label, value, hint }: { icon: React.ComponentType<{ 
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
-    <Link to={to} className="glass flex items-center gap-2.5 rounded-xl p-3.5 text-sm font-medium transition-all hover:-translate-y-0.5 hover:bg-white/5 hover:glow-sm">
+    <Link to={to} preload="render" className="glass flex items-center gap-2.5 rounded-xl p-3.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white/5 hover:glow-sm active:scale-[0.98]">
       <Icon className="h-4 w-4 text-primary" />
       <span className="truncate">{label}</span>
     </Link>
