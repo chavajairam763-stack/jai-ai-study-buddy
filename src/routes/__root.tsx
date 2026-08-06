@@ -127,6 +127,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <SplashScreen />
+      <InstallPrompt />
       <Toaster theme="dark" />
     </QueryClientProvider>
   );
