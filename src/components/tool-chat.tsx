@@ -2,14 +2,18 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
 import {
   Send, Copy, RefreshCw, Sparkles, Plus, Square, Bookmark, Share2,
-  Maximize2, Baby, Download,
+  Maximize2, Baby, Download, Paperclip, Mic, Volume2, VolumeX, X, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tool } from "@/lib/tools";
+import { ACCEPTED_FILE_TYPES, extractFileText } from "@/lib/file-text";
 import {
   consumeOpen, getSession, historyBus, onOpenRequest, setSession, type Msg,
 } from "@/lib/chat-store";
+
+type Doc = { name: string; text: string };
+
 
 export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: string }) {
   const cached = getSession(tool.id);
@@ -18,12 +22,21 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
   const [input, setInput] = useState(cached.input);
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<{ stop: () => void } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const userIdRef = useRef<string | null>(null);
   const stickRef = useRef(true);
+  const docsRef = useRef<Doc[]>([]);
+  docsRef.current = docs;
+
 
   // Typewriter buffers
   const fullRef = useRef("");
@@ -158,9 +171,14 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const modelMessages = extraContext
-        ? [{ role: "user" as const, content: `Reference material:\n\n${extraContext}` }, ...history]
+      const attached = docsRef.current
+        .map((d) => `### File: ${d.name}\n\n${d.text.slice(0, 60000)}`)
+        .join("\n\n---\n\n");
+      const context = [extraContext, attached].filter(Boolean).join("\n\n---\n\n");
+      const modelMessages = context
+        ? [{ role: "user" as const, content: `Reference material:\n\n${context}` }, ...history]
         : history;
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -239,8 +257,74 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     setMessages([]);
     setConversationId(null);
     setInput("");
+    setDocs([]);
     taRef.current?.focus();
   };
+
+  /* ---------------- Attachments ---------------- */
+  const onFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setAttaching(true);
+    try {
+      const parsed: Doc[] = [];
+      for (const file of Array.from(files).slice(0, 5)) {
+        if (file.size > 20 * 1024 * 1024) { toast.error(`${file.name} is over 20MB`); continue; }
+        const text = await extractFileText(file);
+        if (!text) { toast.error(`No readable text in ${file.name}`); continue; }
+        parsed.push({ name: file.name, text });
+      }
+      if (parsed.length) {
+        setDocs((d) => [...d, ...parsed]);
+        toast.success(`${parsed.length} file${parsed.length > 1 ? "s" : ""} attached`);
+      }
+    } catch {
+      toast.error("Couldn't read that file");
+    } finally {
+      setAttaching(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /* ---------------- Voice input (Web Speech API) ---------------- */
+  const toggleMic = () => {
+    if (listening) { recRef.current?.stop(); return; }
+    const w = window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any };
+    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Ctor) return toast.error("Voice input isn't supported in this browser");
+    const rec = new Ctor();
+    rec.lang = navigator.language || "en-US";
+    rec.interimResults = true;
+    rec.continuous = false;
+    const base = input;
+    rec.onresult = (e: any) => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      setInput((base ? base + " " : "") + t);
+    };
+    rec.onerror = () => { setListening(false); toast.error("Mic error"); };
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
+
+  /* ---------------- Voice output ---------------- */
+  const speak = (text: string) => {
+    if (!("speechSynthesis" in window)) return toast.error("Speech isn't supported here");
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    const u = new SpeechSynthesisUtterance(text.replace(/[#*`>_|]/g, "").slice(0, 4000));
+    u.lang = navigator.language || "en-US";
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+  };
+
+  useEffect(() => () => {
+    recRef.current?.stop();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  }, []);
+
 
   const bookmark = async (content: string) => {
     const uid = userIdRef.current;
@@ -356,7 +440,9 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                           </>
                         )}
                         <IconBtn label="Bookmark" onClick={() => bookmark(m.content)}><Bookmark className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label={speaking ? "Stop reading" : "Read aloud"} onClick={() => speak(m.content)}>{speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}</IconBtn>
                         <IconBtn label="Share" onClick={() => share(m.content)}><Share2 className="h-3.5 w-3.5" /></IconBtn>
+
                       </div>
                     )}
                   </div>
@@ -367,23 +453,53 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
         })}
       </div>
 
-      <form onSubmit={submit} className="glass-strong sticky bottom-0 flex items-end gap-2 rounded-2xl border p-2">
-        <textarea
-          ref={taRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          placeholder={tool.placeholder}
-          rows={1}
-          aria-label="Message"
-          className="max-h-48 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
-        />
-        {loading ? (
-          <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground transition-colors hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
-        ) : (
-          <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send"><Send className="h-4 w-4" /></button>
+      
+      <form
+        onSubmit={submit}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); void onFiles(e.dataTransfer.files); }}
+        className="glass-strong sticky bottom-0 rounded-2xl border p-2"
+      >
+        {(docs.length > 0 || attaching) && (
+          <div className="mb-2 flex flex-wrap gap-1.5 px-1">
+            {docs.map((d, i) => (
+              <span key={`${d.name}-${i}`} className="glass flex max-w-[220px] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs">
+                <FileText className="h-3 w-3 shrink-0 text-primary" />
+                <span className="truncate">{d.name}</span>
+                <button type="button" aria-label={`Remove ${d.name}`} onClick={() => setDocs((x) => x.filter((_, j) => j !== i))} className="rounded-full p-0.5 hover:bg-white/10">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {attaching && <span className="text-xs text-muted-foreground">Reading file…</span>}
+          </div>
         )}
+        <div className="flex items-end gap-1.5">
+          <input ref={fileRef} type="file" multiple accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(e) => void onFiles(e.target.files)} />
+          <button type="button" onClick={() => fileRef.current?.click()} aria-label="Attach file" className="rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground">
+            <Paperclip className="h-4 w-4" />
+          </button>
+          <textarea
+            ref={taRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+            placeholder={tool.placeholder}
+            rows={1}
+            aria-label="Message"
+            className="max-h-48 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <button type="button" onClick={toggleMic} aria-label={listening ? "Stop listening" : "Voice input"} className={`rounded-xl p-2.5 transition-colors ${listening ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/10 hover:text-foreground"}`}>
+            <Mic className={`h-4 w-4 ${listening ? "animate-pulse" : ""}`} />
+          </button>
+          {loading ? (
+            <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground transition-colors hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
+          ) : (
+            <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send"><Send className="h-4 w-4" /></button>
+          )}
+        </div>
       </form>
+
     </div>
   );
 }
