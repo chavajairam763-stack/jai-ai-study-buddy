@@ -4,9 +4,7 @@
  * This file is inert for the web build — it is only read by the Capacitor CLI.
  * See CAPACITOR.md for the full packaging steps.
  */
-import type { CapacitorConfig } from "@capacitor/cli";
-
-const config: CapacitorConfig = {
+const config = {
   appId: "ai.jai.app",
   appName: "JAI.AI",
   // Point Capacitor at the published PWA so the shell always serves the
