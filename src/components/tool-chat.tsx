@@ -257,8 +257,74 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     setMessages([]);
     setConversationId(null);
     setInput("");
+    setDocs([]);
     taRef.current?.focus();
   };
+
+  /* ---------------- Attachments ---------------- */
+  const onFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setAttaching(true);
+    try {
+      const parsed: Doc[] = [];
+      for (const file of Array.from(files).slice(0, 5)) {
+        if (file.size > 20 * 1024 * 1024) { toast.error(`${file.name} is over 20MB`); continue; }
+        const text = await extractFileText(file);
+        if (!text) { toast.error(`No readable text in ${file.name}`); continue; }
+        parsed.push({ name: file.name, text });
+      }
+      if (parsed.length) {
+        setDocs((d) => [...d, ...parsed]);
+        toast.success(`${parsed.length} file${parsed.length > 1 ? "s" : ""} attached`);
+      }
+    } catch {
+      toast.error("Couldn't read that file");
+    } finally {
+      setAttaching(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /* ---------------- Voice input (Web Speech API) ---------------- */
+  const toggleMic = () => {
+    if (listening) { recRef.current?.stop(); return; }
+    const w = window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any };
+    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Ctor) return toast.error("Voice input isn't supported in this browser");
+    const rec = new Ctor();
+    rec.lang = navigator.language || "en-US";
+    rec.interimResults = true;
+    rec.continuous = false;
+    const base = input;
+    rec.onresult = (e: any) => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      setInput((base ? base + " " : "") + t);
+    };
+    rec.onerror = () => { setListening(false); toast.error("Mic error"); };
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    rec.start();
+    setListening(true);
+  };
+
+  /* ---------------- Voice output ---------------- */
+  const speak = (text: string) => {
+    if (!("speechSynthesis" in window)) return toast.error("Speech isn't supported here");
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    const u = new SpeechSynthesisUtterance(text.replace(/[#*`>_|]/g, "").slice(0, 4000));
+    u.lang = navigator.language || "en-US";
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+    setSpeaking(true);
+  };
+
+  useEffect(() => () => {
+    recRef.current?.stop();
+    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  }, []);
+
 
   const bookmark = async (content: string) => {
     const uid = userIdRef.current;
