@@ -453,7 +453,7 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
         })}
       </div>
 
-      <form onSubmit={submit} className="glass-strong sticky bottom-0 flex items-end gap-2 rounded-2xl border p-2">
+      
       <form
         onSubmit={submit}
         onDragOver={(e) => e.preventDefault()}
