@@ -2,14 +2,18 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Markdown } from "@/components/markdown";
 import {
   Send, Copy, RefreshCw, Sparkles, Plus, Square, Bookmark, Share2,
-  Maximize2, Baby, Download,
+  Maximize2, Baby, Download, Paperclip, Mic, Volume2, VolumeX, X, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tool } from "@/lib/tools";
+import { ACCEPTED_FILE_TYPES, extractFileText } from "@/lib/file-text";
 import {
   consumeOpen, getSession, historyBus, onOpenRequest, setSession, type Msg,
 } from "@/lib/chat-store";
+
+type Doc = { name: string; text: string };
+
 
 export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: string }) {
   const cached = getSession(tool.id);
