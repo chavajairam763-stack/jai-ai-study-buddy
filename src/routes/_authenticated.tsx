@@ -17,9 +17,10 @@ function Layout() {
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       <AppSidebar />
-      <main className="min-w-0 flex-1 p-3 sm:p-4 md:p-6">
+      <main className="min-w-0 flex-1 p-3 pb-24 sm:p-4 md:p-6 lg:pb-6">
         <Outlet />
       </main>
+      <MobileTabBar />
     </div>
   );
 }
