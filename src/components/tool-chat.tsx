@@ -454,22 +454,52 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
       </div>
 
       <form onSubmit={submit} className="glass-strong sticky bottom-0 flex items-end gap-2 rounded-2xl border p-2">
-        <textarea
-          ref={taRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          placeholder={tool.placeholder}
-          rows={1}
-          aria-label="Message"
-          className="max-h-48 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
-        />
-        {loading ? (
-          <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground transition-colors hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
-        ) : (
-          <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send"><Send className="h-4 w-4" /></button>
+      <form
+        onSubmit={submit}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); void onFiles(e.dataTransfer.files); }}
+        className="glass-strong sticky bottom-0 rounded-2xl border p-2"
+      >
+        {(docs.length > 0 || attaching) && (
+          <div className="mb-2 flex flex-wrap gap-1.5 px-1">
+            {docs.map((d, i) => (
+              <span key={`${d.name}-${i}`} className="glass flex max-w-[220px] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs">
+                <FileText className="h-3 w-3 shrink-0 text-primary" />
+                <span className="truncate">{d.name}</span>
+                <button type="button" aria-label={`Remove ${d.name}`} onClick={() => setDocs((x) => x.filter((_, j) => j !== i))} className="rounded-full p-0.5 hover:bg-white/10">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {attaching && <span className="text-xs text-muted-foreground">Reading file…</span>}
+          </div>
         )}
+        <div className="flex items-end gap-1.5">
+          <input ref={fileRef} type="file" multiple accept={ACCEPTED_FILE_TYPES} className="hidden" onChange={(e) => void onFiles(e.target.files)} />
+          <button type="button" onClick={() => fileRef.current?.click()} aria-label="Attach file" className="rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground">
+            <Paperclip className="h-4 w-4" />
+          </button>
+          <textarea
+            ref={taRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+            placeholder={tool.placeholder}
+            rows={1}
+            aria-label="Message"
+            className="max-h-48 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground"
+          />
+          <button type="button" onClick={toggleMic} aria-label={listening ? "Stop listening" : "Voice input"} className={`rounded-xl p-2.5 transition-colors ${listening ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-white/10 hover:text-foreground"}`}>
+            <Mic className={`h-4 w-4 ${listening ? "animate-pulse" : ""}`} />
+          </button>
+          {loading ? (
+            <button type="button" onClick={stop} className="rounded-xl bg-white/10 p-2.5 text-foreground transition-colors hover:bg-white/20" aria-label="Stop"><Square className="h-4 w-4" /></button>
+          ) : (
+            <button disabled={!input.trim()} className="rounded-xl bg-gradient-primary p-2.5 text-primary-foreground glow-sm transition-transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100" aria-label="Send"><Send className="h-4 w-4" /></button>
+          )}
+        </div>
       </form>
+
     </div>
   );
 }
