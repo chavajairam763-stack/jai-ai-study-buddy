@@ -171,9 +171,14 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     try {
-      const modelMessages = extraContext
-        ? [{ role: "user" as const, content: `Reference material:\n\n${extraContext}` }, ...history]
+      const attached = docsRef.current
+        .map((d) => `### File: ${d.name}\n\n${d.text.slice(0, 60000)}`)
+        .join("\n\n---\n\n");
+      const context = [extraContext, attached].filter(Boolean).join("\n\n---\n\n");
+      const modelMessages = context
+        ? [{ role: "user" as const, content: `Reference material:\n\n${context}` }, ...history]
         : history;
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
