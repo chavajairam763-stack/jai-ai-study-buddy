@@ -22,12 +22,21 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
   const [input, setInput] = useState(cached.input);
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [attaching, setAttaching] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<{ stop: () => void } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const userIdRef = useRef<string | null>(null);
   const stickRef = useRef(true);
+  const docsRef = useRef<Doc[]>([]);
+  docsRef.current = docs;
+
 
   // Typewriter buffers
   const fullRef = useRef("");
