@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { registerPwa } from "../lib/register-sw";
 import { Toaster } from "@/components/ui/sonner";
+import { SplashScreen } from "@/components/splash-screen";
+import { InstallPrompt } from "@/components/install-prompt";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -125,6 +127,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <SplashScreen />
+      <InstallPrompt />
       <Toaster theme="dark" />
     </QueryClientProvider>
   );
