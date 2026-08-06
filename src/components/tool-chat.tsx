@@ -440,7 +440,9 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                           </>
                         )}
                         <IconBtn label="Bookmark" onClick={() => bookmark(m.content)}><Bookmark className="h-3.5 w-3.5" /></IconBtn>
+                        <IconBtn label={speaking ? "Stop reading" : "Read aloud"} onClick={() => speak(m.content)}>{speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}</IconBtn>
                         <IconBtn label="Share" onClick={() => share(m.content)}><Share2 className="h-3.5 w-3.5" /></IconBtn>
+
                       </div>
                     )}
                   </div>
