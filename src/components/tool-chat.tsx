@@ -24,6 +24,8 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
   const [restoring, setRestoring] = useState(false);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [attaching, setAttaching] = useState(false);
+  const [attachStatus, setAttachStatus] = useState<string | null>(null);
+
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
 
