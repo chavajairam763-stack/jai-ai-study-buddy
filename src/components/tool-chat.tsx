@@ -476,7 +476,7 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                 </button>
               </span>
             ))}
-            {attaching && <span className="text-xs text-muted-foreground">Reading file…</span>}
+            {attaching && <span className="text-xs text-muted-foreground">{attachStatus ?? "Reading file…"}</span>}
           </div>
         )}
         <div className="flex items-end gap-1.5">
