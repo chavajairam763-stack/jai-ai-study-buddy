@@ -24,6 +24,8 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
   const [restoring, setRestoring] = useState(false);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [attaching, setAttaching] = useState(false);
+  const [attachStatus, setAttachStatus] = useState<string | null>(null);
+
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
 
@@ -269,7 +271,8 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
       const parsed: Doc[] = [];
       for (const file of Array.from(files).slice(0, 5)) {
         if (file.size > 20 * 1024 * 1024) { toast.error(`${file.name} is over 20MB`); continue; }
-        const text = await extractFileText(file);
+        setAttachStatus(`${file.name} — reading…`);
+        const text = await extractFileText(file, (s) => setAttachStatus(`${file.name} — ${s}`));
         if (!text) { toast.error(`No readable text in ${file.name}`); continue; }
         parsed.push({ name: file.name, text });
       }
@@ -281,9 +284,11 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
       toast.error("Couldn't read that file");
     } finally {
       setAttaching(false);
+      setAttachStatus(null);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+
 
   /* ---------------- Voice input (Web Speech API) ---------------- */
   const toggleMic = () => {
@@ -471,7 +476,7 @@ export function ToolChat({ tool, extraContext }: { tool: Tool; extraContext?: st
                 </button>
               </span>
             ))}
-            {attaching && <span className="text-xs text-muted-foreground">Reading file…</span>}
+            {attaching && <span className="text-xs text-muted-foreground">{attachStatus ?? "Reading file…"}</span>}
           </div>
         )}
         <div className="flex items-end gap-1.5">
