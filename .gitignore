@@ -37,3 +37,8 @@ ios/
 *.jks
 *.keystore
 keystore.properties
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
