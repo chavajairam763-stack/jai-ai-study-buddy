@@ -4,8 +4,19 @@ import { loadEnv } from "vite";
 
 const mode = process.env.NODE_ENV === "production" ? "production" : "development";
 const env = loadEnv(mode, process.cwd(), "");
-const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
-const supabasePublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
+// `loadEnv` reads local .env files, while Lovable Cloud injects hosted build
+// values through process.env. Support both sources before defining the public
+// browser variables. Never include the service-role key here.
+const supabaseUrl =
+  process.env.VITE_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  env.VITE_SUPABASE_URL ||
+  env.SUPABASE_URL;
+const supabasePublishableKey =
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  env.SUPABASE_PUBLISHABLE_KEY;
 
 export default defineConfig({
   tanstackStart: {
