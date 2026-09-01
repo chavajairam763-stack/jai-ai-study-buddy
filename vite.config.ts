@@ -5,8 +5,7 @@ import { loadEnv } from "vite";
 const mode = process.env.NODE_ENV === "production" ? "production" : "development";
 const env = loadEnv(mode, process.cwd(), "");
 const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
-const supabasePublishableKey =
-  env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
+const supabasePublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY;
 
 export default defineConfig({
   tanstackStart: {
@@ -17,9 +16,7 @@ export default defineConfig({
     // key is intentionally excluded and remains available to server code only.
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        supabasePublishableKey,
-      ),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabasePublishableKey),
     },
     plugins: [
       VitePWA({
@@ -43,7 +40,8 @@ export default defineConfig({
               },
             },
             {
-              urlPattern: ({ url, sameOrigin }) => sameOrigin && /\.(?:png|jpg|jpeg|svg|webp|gif|ico|woff2)$/.test(url.pathname),
+              urlPattern: ({ url, sameOrigin }) =>
+                sameOrigin && /\.(?:png|jpg|jpeg|svg|webp|gif|ico|woff2)$/.test(url.pathname),
               handler: "CacheFirst",
               options: {
                 cacheName: "assets",
