@@ -14,19 +14,11 @@ export default defineConfig({
         filename: "sw.js",
         manifest: false,
         workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
+          globPatterns: ["**/*.{js,css,ico,png,svg,webp,woff2}"],
           runtimeCaching: [
-            {
-              urlPattern: ({ request }) => request.mode === "navigate",
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "html-nav",
-                networkTimeoutSeconds: 4,
-                expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 7 },
-              },
-            },
             {
               urlPattern: ({ url, sameOrigin }) =>
                 sameOrigin && /\.(?:png|jpg|jpeg|svg|webp|gif|ico|woff2)$/.test(url.pathname),
