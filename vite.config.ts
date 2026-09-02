@@ -17,6 +17,9 @@ export default defineConfig({
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
+          // TanStack Start renders navigations on the server. Do not let Workbox
+          // serve a precached HTML shell that can reference obsolete JS chunks.
+          navigateFallback: null,
           globPatterns: ["**/*.{js,css,ico,png,svg,webp,woff2}"],
           runtimeCaching: [
             {
